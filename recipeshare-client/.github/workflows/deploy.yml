@@ -1,0 +1,53 @@
+name: Deploy client to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'recipeshare-client/**'
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    defaults:
+      run:
+        working-directory: recipeshare-client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: recipeshare-client/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://example.com/api' }}
+          VITE_GITHUB_PROFILE_URL: ${{ vars.VITE_GITHUB_PROFILE_URL || 'https://github.com/' }}
+        run: npm run build
+
+      - name: SPA fallback (404.html)
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: recipeshare-client/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

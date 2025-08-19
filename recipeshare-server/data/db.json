@@ -1,0 +1,73 @@
+{
+  "users": [
+    {
+      "id": "b26d7e6e-2dac-445c-90d3-6bd29b1867f3",
+      "name": "yash thakare",
+      "email": "hideadpool44@gmail.com",
+      "passwordHash": "$2a$10$wL.Bl5U6xt6mqpYy6/g1o.4M2Go58u5QrUZ.m1o9FZZo/19uJ5GTC",
+      "favorites": []
+    },
+    {
+      "id": "afd38fae-0581-4749-b40e-b6e119c91168",
+      "name": "yash",
+      "email": "yash44thakare@gmail.com",
+      "passwordHash": "$2a$10$4.Yvwb1NUk9S2GhpnBdstuem.lLI1RhNbK.L0eg6wp..ZsRYuhlcu",
+      "favorites": [
+        "0d1b5cb1-dc2f-4e7d-8f53-75361f5b9286"
+      ]
+    }
+  ],
+  "recipes": [
+    {
+      "id": "0d1b5cb1-dc2f-4e7d-8f53-75361f5b9286",
+      "authorId": "afd38fae-0581-4749-b40e-b6e119c91168",
+      "title": "Chocolate Chip Cookies 🍪",
+      "description": "Classic soft and chewy chocolate chip cookies, perfect with milk or as a sweet snack.",
+      "ingredients": [
+        "1 cup unsalted butter (softened)",
+        "1 cup white sugar",
+        "1 cup brown sugar (packed)",
+        "2 large eggs",
+        "2 tsp vanilla extract",
+        "3 cups all-purpose flour",
+        "1 tsp baking soda",
+        "½ tsp baking powder",
+        "1 tsp salt",
+        "2 cups chocolate chips"
+      ],
+      "instructions": [
+        "Preheat oven to 180°C (350°F).",
+        "In a large bowl, cream together butter, white sugar, and brown sugar until smooth.",
+        "Beat in eggs one at a time, then stir in vanilla.",
+        "In another bowl, whisk flour, baking soda, baking powder, and salt.",
+        "Gradually add dry ingredients to the wet mixture.",
+        "Stir in chocolate chips.",
+        "Drop spoonfuls of dough onto a baking tray lined with parchment paper.",
+        "Bake for 8–10 minutes, or until edges are golden brown.",
+        "Let cookies cool before serving."
+      ],
+      "categories": [
+        "Dessert",
+        "Snacks",
+        "Baking",
+        "Cookies"
+      ],
+      "photoUrl": "/uploads/f4911c62-ff61-492f-9883-6bcd1fa41ddb.jpg",
+      "comments": [],
+      "ratings": [
+        {
+          "id": "c8a22363-d71c-464a-9e0a-5709ee7761e0",
+          "value": 5,
+          "createdAt": "2025-08-19T13:12:01.818Z"
+        },
+        {
+          "id": "b04ca080-7d47-4e21-97dc-94f7b07953f0",
+          "value": 5,
+          "createdAt": "2025-08-19T13:12:07.599Z"
+        }
+      ],
+      "createdAt": "2025-08-19T13:11:34.268Z",
+      "updatedAt": "2025-08-19T13:12:07.599Z"
+    }
+  ]
+}
