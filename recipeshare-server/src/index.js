@@ -7,6 +7,14 @@ import { ENV } from "./config.js";
 import { ensureDatabase } from "./utils/db.js";
 import authRouter from "./routes/auth.js";
 import recipesRouter from "./routes/recipes.js";
+import mongoose from "mongoose";
+
+const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/recipeshare";
+
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
