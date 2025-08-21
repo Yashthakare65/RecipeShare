@@ -11,6 +11,7 @@ const recipeSchema = new mongoose.Schema(
     photoUrl: String,
     comments: [
       {
+        authorName: String,
         text: String,
         createdAt: { type: Date, default: Date.now }
       }
