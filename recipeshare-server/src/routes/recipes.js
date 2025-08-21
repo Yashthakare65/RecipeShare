@@ -21,14 +21,21 @@ const router = Router();
 
 function toPublicRecipe(recipe) {
   const doc = recipe.toObject();
-  const { comments, ratings, ...rest } = doc;
+  const { comments, ratings, _id, authorId, ...rest } = doc;
   const averageRating = ratings && ratings.length
     ? Number((ratings.reduce((a, r) => a + r.value, 0) / ratings.length).toFixed(2))
     : 0;
   const absolutePhotoUrl = rest.photoUrl
     ? `${ENV.PUBLIC_URL}${rest.photoUrl}`
     : null;
-  return { ...rest, photoUrl: absolutePhotoUrl, averageRating, commentsCount: (comments || []).length };
+  return {
+    id: String(_id),
+    authorId: authorId ? String(authorId._id || authorId) : undefined,
+    ...rest,
+    photoUrl: absolutePhotoUrl,
+    averageRating,
+    commentsCount: (comments || []).length
+  };
 }
 
 // Create Recipe
@@ -89,7 +96,9 @@ router.get("/:id", async (req, res) => {
     if (!recipe) return res.status(404).json({ message: "Not found" });
 
     const pub = toPublicRecipe(recipe);
-    res.json({ ...pub, comments: recipe.comments, ratings: recipe.ratings });
+    const comments = (recipe.comments || []).map((c) => ({ id: String(c._id || ''), authorName: c.authorName, text: c.text, createdAt: c.createdAt }));
+    const ratings = (recipe.ratings || []).map((r) => ({ id: String(r._id || ''), value: r.value, createdAt: r.createdAt }));
+    res.json({ ...pub, comments, ratings });
   } catch (error) {
     console.error("Get recipe error:", error);
     res.status(500).json({ message: "Failed to fetch recipe" });

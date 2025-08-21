@@ -7,8 +7,9 @@ import User from "../models/User.js";
 const router = Router();
 
 function toPublicUser(user) {
-  const { passwordHash, ...rest } = user.toObject();
-  return rest;
+  const obj = user.toObject();
+  const { passwordHash, _id, ...rest } = obj;
+  return { id: String(_id), ...rest };
 }
 
 router.post("/register", async (req, res) => {
