@@ -23,6 +23,8 @@ const app = express();
 const configuredOrigins = String(ENV.CORS_ORIGIN || "*")
   .split(",")
   .map((s) => s.trim())
+  .map((s) => s.replace(/^['"]|['"]$/g, "")) // strip wrapping quotes if any
+  .map((s) => s.replace(/\/$/, "")) // strip trailing slash
   .filter(Boolean);
 
 function wildcardToRegExp(pattern) {
@@ -34,13 +36,19 @@ function wildcardToRegExp(pattern) {
 
 const originMatchers = configuredOrigins.includes("*")
   ? [/.*/]
-  : configuredOrigins.map((p) => (p.includes("*") ? wildcardToRegExp(p) : new RegExp(`^${p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}$`)));
+  : configuredOrigins.map((p) => {
+      const normalized = p.toLowerCase();
+      if (normalized.includes("*")) return wildcardToRegExp(normalized);
+      const escaped = normalized.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+      return new RegExp(`^${escaped}$`);
+    });
 
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // non-browser or same-origin
-      const allowed = originMatchers.some((rx) => rx.test(origin));
+      const o = String(origin).replace(/\/$/, "").toLowerCase();
+      const allowed = originMatchers.some((rx) => rx.test(o));
       callback(allowed ? null : new Error("CORS: Origin not allowed"), allowed);
     },
     credentials: true
