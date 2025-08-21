@@ -21,7 +21,33 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors({ origin: ENV.CORS_ORIGIN, credentials: true }));
+// Build a flexible CORS origin checker from ENV.CORS_ORIGIN
+const configuredOrigins = String(ENV.CORS_ORIGIN || "*")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+function wildcardToRegExp(pattern) {
+  // Support simple wildcard subdomains like https://*.vercel.app
+  const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+  const regexSource = "^" + escaped.replace(/\\\*/g, ".*") + "$";
+  return new RegExp(regexSource);
+}
+
+const originMatchers = configuredOrigins.includes("*")
+  ? [/.*/]
+  : configuredOrigins.map((p) => (p.includes("*") ? wildcardToRegExp(p) : new RegExp(`^${p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}$`)));
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // non-browser or same-origin
+      const allowed = originMatchers.some((rx) => rx.test(origin));
+      callback(allowed ? null : new Error("CORS: Origin not allowed"), allowed);
+    },
+    credentials: true
+  })
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
