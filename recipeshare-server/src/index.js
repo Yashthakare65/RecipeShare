@@ -63,7 +63,7 @@ const originMatchers = allowAllCors
   });
 
 if (allowAllCors) {
-  const corsAll = cors({ origin: true, credentials: true, allowedHeaders: ["Content-Type", "Authorization"] });
+  const corsAll = cors({ origin: true, credentials: true });
   app.use(corsAll);
   app.options("*", corsAll);
 } else {
@@ -74,8 +74,7 @@ if (allowAllCors) {
       const allowed = originMatchers.some((rx) => rx.test(o));
       callback(allowed ? null : new Error("CORS: Origin not allowed"), allowed);
     },
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"]
+    credentials: true
   });
   app.use(corsSelective);
   app.options("*", corsSelective);
