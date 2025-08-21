@@ -34,7 +34,11 @@ function wildcardToRegExp(pattern) {
   return new RegExp(regexSource);
 }
 
-const originMatchers = configuredOrigins.includes("*")
+const allowAllCors = configuredOrigins.includes("*");
+// Log normalized CORS config once on boot for debugging
+console.log("CORS allowAll:", allowAllCors, "origins:", configuredOrigins);
+
+const originMatchers = allowAllCors
   ? [/.*/]
   : configuredOrigins.map((p) => {
       const normalized = p.toLowerCase();
@@ -43,17 +47,24 @@ const originMatchers = configuredOrigins.includes("*")
       return new RegExp(`^${escaped}$`);
     });
 
-app.use(
-  cors({
+if (allowAllCors) {
+  const corsAll = cors({ origin: true, credentials: true, allowedHeaders: ["Content-Type", "Authorization"] });
+  app.use(corsAll);
+  app.options("*", corsAll);
+} else {
+  const corsSelective = cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // non-browser or same-origin
       const o = String(origin).replace(/\/$/, "").toLowerCase();
       const allowed = originMatchers.some((rx) => rx.test(o));
       callback(allowed ? null : new Error("CORS: Origin not allowed"), allowed);
     },
-    credentials: true
-  })
-);
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
+  });
+  app.use(corsSelective);
+  app.options("*", corsSelective);
+}
 
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
