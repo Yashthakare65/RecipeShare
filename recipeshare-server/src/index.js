@@ -10,9 +10,25 @@ import mongoose from "mongoose";
 
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/recipeshare";
 
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+mongoose.connect(mongoURI)
+  .then(() => {
+    console.log("✅ Connected to MongoDB");
+    console.log("📊 Database:", mongoose.connection.db.databaseName);
+    console.log("🔗 Connection URL:", mongoURI.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")); // Hide credentials
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    console.error("🔧 Check MONGO_URI environment variable and Atlas network access");
+  });
+
+// Monitor MongoDB connection
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ MongoDB disconnected');
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,10 +57,10 @@ console.log("CORS allowAll:", allowAllCors, "origins:", configuredOrigins);
 const originMatchers = allowAllCors
   ? [/.*/]
   : configuredOrigins.map((p) => {
-      if (p.includes("*")) return wildcardToRegExp(p);
-      const escaped = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
-      return new RegExp(`^${escaped}$`, "i"); // case-insensitive
-    });
+    if (p.includes("*")) return wildcardToRegExp(p);
+    const escaped = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+    return new RegExp(`^${escaped}$`, "i"); // case-insensitive
+  });
 
 if (allowAllCors) {
   const corsAll = cors({ origin: true, credentials: true, allowedHeaders: ["Content-Type", "Authorization"] });
@@ -70,7 +86,11 @@ app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({
+    status: "ok",
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    database: mongoose.connection.db?.databaseName || "unknown"
+  });
 });
 
 app.use("/api/auth", authRouter);
