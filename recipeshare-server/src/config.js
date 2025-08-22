@@ -13,7 +13,15 @@ export const ENV = {
   DATA_FILE: process.env.DATA_FILE || path.join(__dirname, "../data/db.json"),
   UPLOAD_DIR: process.env.UPLOAD_DIR || path.join(__dirname, "../uploads"),
   CORS_ORIGIN: process.env.CORS_ORIGIN || "*",
-  PUBLIC_URL: process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://127.0.0.1:${process.env.PORT || 5000}`
+  PUBLIC_URL: process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://127.0.0.1:${process.env.PORT || 5000}`,
+  
+  // Cloudinary configuration
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+  
+  // Use Cloudinary if configured, otherwise fallback to local storage
+  USE_CLOUDINARY: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
 };
 
 
