@@ -72,7 +72,13 @@ if (allowAllCors) {
       if (!origin) return callback(null, true); // non-browser or same-origin
       const o = String(origin).replace(/\/$/, "");
       const allowed = originMatchers.some((rx) => rx.test(o));
-      callback(allowed ? null : new Error("CORS: Origin not allowed"), allowed);
+      if (allowed) {
+        console.log("✅ CORS allowed:", o);
+        callback(null, true);
+      } else {
+        console.log("❌ CORS blocked:", o);
+        callback(new Error("CORS: Origin not allowed"), false);
+      }
     },
     credentials: true
   });
@@ -90,6 +96,26 @@ app.get("/api/health", (req, res) => {
     mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
     database: mongoose.connection.db?.databaseName || "unknown"
   });
+});
+
+// Test endpoint to verify MongoDB data
+app.get("/api/test", async (req, res) => {
+  try {
+    const User = (await import("./models/User.js")).default;
+    const Recipe = (await import("./models/Recipe.js")).default;
+
+    const userCount = await User.countDocuments();
+    const recipeCount = await Recipe.countDocuments();
+
+    res.json({
+      users: userCount,
+      recipes: recipeCount,
+      mongodb: "working"
+    });
+  } catch (error) {
+    console.error("Test endpoint error:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.use("/api/auth", authRouter);
