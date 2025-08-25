@@ -7,10 +7,9 @@ import { ENV } from "./config.js";
 import authRouter from "./routes/auth.js";
 import recipesRouter from "./routes/recipes.js";
 import mongoose from "mongoose";
-app.get("/", (req, res) => {
-  res.send("Backend is running!");
-});
 
+// ✅ Initialize Express first
+const app = express();
 
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/recipeshare";
 
@@ -18,14 +17,12 @@ mongoose.connect(mongoURI)
   .then(() => {
     console.log("✅ Connected to MongoDB");
     console.log("📊 Database:", mongoose.connection.db.databaseName);
-    console.log("🔗 Connection URL:", mongoURI.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")); // Hide credentials
+    console.log("🔗 Connection URL:", mongoURI.replace(/\/\/[^:]+:[^@]+@/, "//***:***@"));
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
-    console.error("🔧 Check MONGO_URI environment variable and Atlas network access");
   });
 
-// Monitor MongoDB connection
 mongoose.connection.on('error', (err) => {
   console.error('❌ MongoDB connection error:', err);
 });
@@ -37,34 +34,29 @@ mongoose.connection.on('disconnected', () => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-
-// Build a flexible CORS origin checker from ENV.CORS_ORIGIN
+// CORS setup
 const configuredOrigins = String(ENV.CORS_ORIGIN || "*")
   .split(",")
   .map((s) => s.trim())
-  .map((s) => s.replace(/^['"]|['"]$/g, "")) // strip wrapping quotes if any
-  .map((s) => s.replace(/\/$/, "")) // strip trailing slash
+  .map((s) => s.replace(/^['"]|['"]$/g, ""))
+  .map((s) => s.replace(/\/$/, ""))
   .filter(Boolean);
 
 function wildcardToRegExp(pattern) {
-  // Support wildcard subdomains like https://*.vercel.app (matches any number of subdomain levels)
   const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-  const regexSource = "^" + escaped.replace(/\\\*/g, ".*") + "$";
-  return new RegExp(regexSource, "i"); // case-insensitive
+  return new RegExp("^" + escaped.replace(/\\\*/g, ".*") + "$", "i");
 }
 
 const allowAllCors = configuredOrigins.includes("*");
-// Log normalized CORS config once on boot for debugging
 console.log("CORS allowAll:", allowAllCors, "origins:", configuredOrigins);
 
 const originMatchers = allowAllCors
   ? [/.*/]
   : configuredOrigins.map((p) => {
-    if (p.includes("*")) return wildcardToRegExp(p);
-    const escaped = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
-    return new RegExp(`^${escaped}$`, "i"); // case-insensitive
-  });
+      if (p.includes("*")) return wildcardToRegExp(p);
+      const escaped = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+      return new RegExp(`^${escaped}$`, "i");
+    });
 
 if (allowAllCors) {
   const corsAll = cors({ origin: true, credentials: true });
@@ -73,16 +65,11 @@ if (allowAllCors) {
 } else {
   const corsSelective = cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // non-browser or same-origin
+      if (!origin) return callback(null, true);
       const o = String(origin).replace(/\/$/, "");
       const allowed = originMatchers.some((rx) => rx.test(o));
-      if (allowed) {
-        console.log("✅ CORS allowed:", o);
-        callback(null, true);
-      } else {
-        console.log("❌ CORS blocked:", o);
-        callback(new Error("CORS: Origin not allowed"), false);
-      }
+      if (allowed) callback(null, true);
+      else callback(new Error("CORS: Origin not allowed"), false);
     },
     credentials: true
   });
@@ -94,6 +81,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
+// ✅ Root route (for Cron-job.org)
+app.get("/", (req, res) => {
+  res.send("Backend is running!");
+});
+
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
@@ -102,7 +94,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Test endpoint to verify MongoDB data
 app.get("/api/test", async (req, res) => {
   try {
     const User = (await import("./models/User.js")).default;
@@ -126,8 +117,5 @@ app.use("/api/auth", authRouter);
 app.use("/api/recipes", recipesRouter);
 
 app.listen(ENV.PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`API listening on port ${ENV.PORT}`);
 });
-
-
