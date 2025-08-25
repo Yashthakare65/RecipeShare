@@ -7,6 +7,10 @@ import { ENV } from "./config.js";
 import authRouter from "./routes/auth.js";
 import recipesRouter from "./routes/recipes.js";
 import mongoose from "mongoose";
+app.get("/", (req, res) => {
+  res.send("Backend is running!");
+});
+
 
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/recipeshare";
 
